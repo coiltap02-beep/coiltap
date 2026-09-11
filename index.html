@@ -108,6 +108,63 @@
   }
   .wa-nav-btn:hover{filter:brightness(1.08);}
   .nav-right{display:flex; align-items:center; gap:14px;}
+
+  /* ---------- Mobile hamburger + sidebar ---------- */
+  .hamburger-btn{
+    display:none;
+    width:38px; height:38px; border-radius:8px;
+    background:transparent; border:1px solid var(--line-bright); color:var(--paper);
+    align-items:center; justify-content:center; cursor:pointer;
+  }
+  .hamburger-btn svg{width:20px; height:20px;}
+  .sidebar-overlay{
+    display:none;
+    position:fixed; inset:0; z-index:90;
+    background:rgba(10,11,15,0.72); backdrop-filter:blur(3px);
+  }
+  .sidebar-overlay.open{display:block;}
+  .sidebar-panel{
+    position:absolute; top:0; right:0; bottom:0;
+    width:78%; max-width:320px;
+    background:var(--ink-2); border-left:1px solid var(--line-bright);
+    padding:28px 26px;
+    display:flex; flex-direction:column; gap:4px;
+    transform:translateX(100%);
+    animation:sidebar-in 0.25s ease forwards;
+    overflow-y:auto;
+  }
+  @keyframes sidebar-in{ to{ transform:translateX(0); } }
+  .sidebar-close{
+    position:absolute; top:20px; right:20px;
+    width:34px; height:34px; border-radius:50%;
+    background:var(--ink-3); border:1px solid var(--line-bright); color:var(--paper);
+    font-size:0.95rem; cursor:pointer;
+  }
+  .sidebar-logo{
+    display:flex; align-items:center; gap:10px;
+    font-size:1.1rem; font-weight:700; margin-bottom:28px;
+  }
+  .sidebar-logo svg{width:24px; height:24px;}
+  .sidebar-panel a{
+    color:var(--paper); text-decoration:none; font-size:1.02rem;
+    padding:13px 4px; border-bottom:1px solid var(--line);
+  }
+  .sidebar-divider{height:14px;}
+  .sidebar-wa{
+    display:flex; align-items:center; gap:9px;
+    background:var(--whatsapp); color:#0c1a0f !important;
+    border-radius:10px; padding:13px 14px !important; border-bottom:none !important;
+    font-weight:700; margin-top:10px;
+  }
+  .sidebar-socials{
+    display:flex; gap:12px; margin-top:20px;
+  }
+  .sidebar-socials a{
+    display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:50%; padding:0; border-bottom:none;
+    border:1px solid var(--line-bright);
+  }
+  .sidebar-socials svg{width:17px; height:17px;}
   .social-icons{display:flex; align-items:center; gap:10px;}
   .social-icons a{
     display:flex; align-items:center; justify-content:center;
@@ -293,6 +350,7 @@
     gap:10px;
   }
   .price{font-family:'IBM Plex Mono'; font-size:1.05rem; color:var(--paper);}
+  .price-old{font-family:'IBM Plex Mono'; font-size:0.85rem; color:var(--paper-dim); text-decoration:line-through; margin-right:6px;}
   .order-btn{
     display:inline-flex; align-items:center; gap:7px;
     background:var(--copper); border:none; color:#181008;
@@ -394,7 +452,7 @@
     text-transform:uppercase; letter-spacing:0.05em; color:var(--paper-dim);
     margin-bottom:8px;
   }
-  .form-row input[type=text], .form-row input[type=tel], .form-row select, .form-row textarea{
+  .form-row input[type=text], .form-row input[type=tel], .form-row input[type=email], .form-row select, .form-row textarea{
     width:100%; background:var(--ink-2); border:1px solid var(--line-bright);
     color:var(--paper); border-radius:8px; padding:12px 14px; font-family:'Inter';
     font-size:0.94rem;
@@ -513,6 +571,8 @@
     .biz-card-grid{grid-template-columns:repeat(2, 1fr);}
     .steps{grid-template-columns:1fr; gap:28px;}
     .nav-links{display:none;}
+    .wa-nav-btn{display:none;}
+    .hamburger-btn{display:flex;}
     .two-col{grid-template-columns:1fr;}
     .bulk-grid{grid-template-columns:1fr;}
     .coaching-grid{grid-template-columns:1fr;}
@@ -604,10 +664,10 @@
         <label for="product">Card</label>
         <select id="product" name="product" required>
           <option value="">Choose one</option>
-          <option value="Google Review Plate — Rs. 2,500">Google Review Plate — Rs. 2,500</option>
-          <option value="Instagram Follow Plate — Rs. 2,500">Instagram Follow Plate — Rs. 2,500</option>
-          <option value="Facebook Follow Plate — Rs. 2,500">Facebook Follow Plate — Rs. 2,500</option>
-          <option value="Custom Plate — Rs. 2,500">Custom Plate — Rs. 2,500</option>
+          <option value="Google Review Plate — Rs. 2,999">Google Review Plate — Rs. 2,999</option>
+          <option value="Instagram Follow Plate — Rs. 2,999">Instagram Follow Plate — Rs. 2,999</option>
+          <option value="Facebook Follow Plate — Rs. 2,999">Facebook Follow Plate — Rs. 2,999</option>
+          <option value="Custom Plate — Rs. 2,999">Custom Plate — Rs. 2,999</option>
         </select>
       </div>
 
@@ -665,9 +725,42 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.2.2-.3.2-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
         WhatsApp
       </a>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
     </div>
   </nav>
 </header>
+
+<!-- Mobile slide-out sidebar menu -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="if(event.target===this) closeSidebar()">
+  <div class="sidebar-panel" id="sidebarPanel">
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Close menu">✕</button>
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.2" fill="#e0925c"/><circle cx="12" cy="12" r="6" stroke="#e0925c" stroke-width="1.2" opacity="0.6"/><circle cx="12" cy="12" r="10" stroke="#e0925c" stroke-width="1.2" opacity="0.3"/></svg>
+      Coil
+    </div>
+    <a href="#top" onclick="closeSidebar()">Home</a>
+    <a href="#features" onclick="closeSidebar()">Features</a>
+    <a href="#products" onclick="closeSidebar()">Cards</a>
+    <a href="#coaching" onclick="closeSidebar()">Learn</a>
+    <a href="javascript:void(0)" onclick="closeSidebar(); openOrderModal();">Order now</a>
+    <a href="#faq" onclick="closeSidebar()">FAQ</a>
+    <div class="sidebar-divider"></div>
+    <a href="https://wa.me/923330354083?text=Hi!%20I%27d%20like%20to%20ask%20about%20Coil%20NFC%20cards." target="_blank" rel="noopener" class="sidebar-wa">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.2.2-.3.2-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+      WhatsApp us
+    </a>
+    <div class="sidebar-socials">
+      <a href="https://www.instagram.com/coiltap.pk" target="_blank" rel="noopener" aria-label="Follow on Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+      </a>
+      <a href="https://www.facebook.com/share/1C7MTcMUgx/" target="_blank" rel="noopener" aria-label="Follow on Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V11H8v3h2.5v6h3v-6H16l.5-3h-3V9.7c0-.4.3-.7.5-.7Z"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
 
 <section class="hero">
   <div class="wrap hero-grid">
@@ -682,7 +775,7 @@
       <div class="hero-stats">
         <div class="hero-stat"><span class="stat-num">4</span><span class="stat-label">Plate types</span></div>
         <div class="hero-stat"><span class="stat-num">3-day</span><span class="stat-label">Shipping</span></div>
-        <div class="hero-stat"><span class="stat-num">NTAG213</span><span class="stat-label">Chip inside</span></div>
+        <div class="hero-stat"><span class="stat-num">NTAG215</span><span class="stat-label">Chip inside</span></div>
       </div>
     </div>
     <div class="hero-visual" aria-hidden="true">
@@ -753,7 +846,7 @@
     <div class="section-head">
       <div class="eyebrow mono">The lineup</div>
       <h2>Four plates, one chip inside.</h2>
-      <p>Every plate runs the same NTAG213 chip and acrylic body — pick the one that matches what you want it to do.</p>
+      <p>Every plate runs the same NTAG215 chip and acrylic body — pick the one that matches what you want it to do.</p>
     </div>
     <div class="product-grid">
 
@@ -763,8 +856,8 @@
           <h3>Google Review Plate</h3>
           <p>One tap sends customers straight to your review page.</p>
           <div class="product-foot">
-            <span class="price">Rs. 2,500</span>
-            <button type="button" class="order-btn" onclick="openOrderModal('Google Review Plate — Rs. 2,500')">
+            <span class="price-old">Rs. 3,500</span><span class="price">Rs. 2,999</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Google Review Plate — Rs. 2,999')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
               Order
             </button>
@@ -778,8 +871,8 @@
           <h3>Instagram Follow Plate</h3>
           <p>Turn foot traffic or table visits into followers, instantly.</p>
           <div class="product-foot">
-            <span class="price">Rs. 2,500</span>
-            <button type="button" class="order-btn" onclick="openOrderModal('Instagram Follow Plate — Rs. 2,500')">
+            <span class="price-old">Rs. 3,500</span><span class="price">Rs. 2,999</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Instagram Follow Plate — Rs. 2,999')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
               Order
             </button>
@@ -793,8 +886,8 @@
           <h3>Facebook Follow Plate</h3>
           <p>Same idea, pointed at your Facebook page instead.</p>
           <div class="product-foot">
-            <span class="price">Rs. 2,500</span>
-            <button type="button" class="order-btn" onclick="openOrderModal('Facebook Follow Plate — Rs. 2,500')">
+            <span class="price-old">Rs. 3,500</span><span class="price">Rs. 2,999</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Facebook Follow Plate — Rs. 2,999')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
               Order
             </button>
@@ -808,8 +901,8 @@
           <h3>Custom Plate</h3>
           <p>Menu, contact form, a landing page — tell us the goal, we set the link.</p>
           <div class="product-foot">
-            <span class="price">Rs. 2,500</span>
-            <button type="button" class="order-btn" onclick="openOrderModal('Custom Plate — Rs. 2,500')">
+            <span class="price-old">Rs. 3,500</span><span class="price">Rs. 2,999</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Custom Plate — Rs. 2,999')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
               Order
             </button>
@@ -1059,6 +1152,27 @@
     </div>
   </div>
 </footer>
+
+<script>
+  // Mobile sidebar menu
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+  function openSidebar(){
+    sidebarOverlay.classList.add('open');
+    hamburgerBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar(){
+    sidebarOverlay.classList.remove('open');
+    hamburgerBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+  hamburgerBtn.addEventListener('click', openSidebar);
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && sidebarOverlay.classList.contains('open')) closeSidebar();
+  });
+</script>
 
 <script>
   // Order popup: opens pre-filled to a specific product when triggered from a product card,
