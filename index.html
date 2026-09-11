@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coil — Tap-to-Share NFC Cards</title>
+
+<!-- Favicon (inline SVG, no extra file needed) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2314161c'/%3E%3Ccircle cx='12' cy='12' r='2.2' fill='%23e0925c'/%3E%3Ccircle cx='12' cy='12' r='6' stroke='%23e0925c' stroke-width='1.2' fill='none' opacity='0.6'/%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23e0925c' stroke-width='1.2' fill='none' opacity='0.3'/%3E%3C/svg%3E">
+
+<!-- Open Graph / social share preview -->
+<meta property="og:title" content="Coil — Tap-to-Share NFC Cards">
+<meta property="og:description" content="Ready-made NFC cards, pre-loaded and ready to hand out. One tap shares your profile — no app needed.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_PK">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Coil — Tap-to-Share NFC Cards">
+<meta name="twitter:description" content="Ready-made NFC cards, pre-loaded and ready to hand out. One tap shares your profile — no app needed.">
+<meta name="twitter:image" content="og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14161c;
+    --ink-2:#1c1f28;
+    --ink-3:#252938;
+    --paper:#e8e6e1;
+    --paper-dim:#a7a6a3;
+    --copper:#c1723f;
+    --copper-bright:#e0925c;
+    --line:rgba(232,230,225,0.12);
+    --line-bright:rgba(232,230,225,0.22);
+    --whatsapp:#3fae5a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace; letter-spacing:0.02em;}
+  a{color:inherit;}
+  img{max-width:100%; display:block;}
+  .wrap{max-width:1140px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- Mobile sticky order bar ---------- */
+  .mobile-order-bar{
+    display:none;
+    position:fixed; bottom:0; left:0; right:0; z-index:60;
+    background:rgba(20,22,28,0.96); backdrop-filter:blur(10px);
+    border-top:1px solid var(--line-bright);
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    gap:10px;
+  }
+  .mob-bar-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
+    min-height:48px; border-radius:10px; font-family:'Inter'; font-weight:700;
+    font-size:0.92rem; text-decoration:none;
+  }
+  .mob-bar-btn svg{width:17px; height:17px; flex-shrink:0;}
+  .mob-bar-form{background:var(--copper); color:#181008;}
+  .mob-bar-wa{background:var(--whatsapp); color:#0c1a0f;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(20,22,28,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:72px;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-size:1.15rem; font-weight:700;
+  }
+  .logo svg{width:26px; height:26px;}
+  .nav-links{display:flex; gap:32px; align-items:center; font-size:0.94rem;}
+  .nav-links a{opacity:0.8; text-decoration:none; transition:opacity 0.2s;}
+  .nav-links a:hover{opacity:1;}
+  .nav-links a:focus-visible, button:focus-visible, .btn:focus-visible{
+    outline:2px solid var(--copper-bright); outline-offset:3px;
+  }
+  .wa-nav-btn{
+    display:flex; align-items:center; gap:8px;
+    background:var(--whatsapp); border:none;
+    color:#0c1a0f; padding:9px 16px; border-radius:999px;
+    font-family:'Inter'; font-weight:600; font-size:0.88rem; cursor:pointer;
+    text-decoration:none; transition:filter 0.2s;
+  }
+  .wa-nav-btn:hover{filter:brightness(1.08);}
+  .nav-right{display:flex; align-items:center; gap:14px;}
+  .social-icons{display:flex; align-items:center; gap:10px;}
+  .social-icons a{
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line-bright); color:var(--paper);
+    transition:border-color 0.2s, color 0.2s;
+  }
+  .social-icons a:hover{border-color:var(--copper); color:var(--copper-bright);}
+  .social-icons svg{width:16px; height:16px;}
+  .foot-social{display:flex; gap:10px; margin-top:16px;}
+  .foot-social a{
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line-bright); color:var(--paper-dim);
+    transition:border-color 0.2s, color 0.2s;
+  }
+  .foot-social a:hover{border-color:var(--copper); color:var(--copper-bright);}
+  .foot-social svg{width:15px; height:15px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:110px 0 100px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono'; font-size:0.78rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--copper-bright);
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--copper-bright);
+    animation:pulse-dot 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{
+    0%,100%{opacity:1; box-shadow:0 0 0 0 rgba(224,146,92,0.5);}
+    50%{opacity:0.6; box-shadow:0 0 0 6px rgba(224,146,92,0);}
+  }
+  h1.hero-title{
+    font-size:clamp(2.4rem, 4.6vw, 3.6rem);
+    line-height:1.05;
+    max-width:11ch;
+  }
+  h1.hero-title .accent{color:var(--copper-bright);}
+  .hero-sub{
+    margin-top:22px; font-size:1.08rem; color:var(--paper-dim);
+    max-width:42ch;
+  }
+  .hero-ctas{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap;}
+
+  .hero-stats{display:flex; gap:36px; margin-top:44px; flex-wrap:wrap;}
+  .hero-stat{display:flex; flex-direction:column; gap:4px;}
+  .stat-num{font-family:'Space Grotesk'; font-size:1.3rem; font-weight:700; color:var(--paper);}
+  .stat-label{font-family:'IBM Plex Mono'; font-size:0.7rem; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.05em;}
+
+  .perfect-for{
+    margin-top:70px; padding-top:36px; border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+  }
+  .perfect-for-label{font-size:0.75rem; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.06em; flex-shrink:0;}
+  .perfect-chips{display:flex; gap:10px; flex-wrap:wrap;}
+  .chip{
+    font-size:0.84rem; padding:7px 14px; border:1px solid var(--line-bright);
+    border-radius:999px; color:var(--paper-dim);
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:14px 26px; border-radius:999px;
+    font-family:'Inter'; font-weight:600; font-size:0.95rem;
+    text-decoration:none; cursor:pointer; border:1px solid transparent;
+    transition:transform 0.15s ease, background 0.2s, border-color 0.2s;
+  }
+  .btn-primary{background:var(--copper); color:#181008;}
+  .btn-primary:hover{background:var(--copper-bright); transform:translateY(-1px);}
+  .btn-ghost{border-color:var(--line-bright); color:var(--paper);}
+  .btn-ghost:hover{border-color:var(--copper);}
+
+  .hero-visual{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    height:420px;
+  }
+  .ripple-ring{
+    position:absolute; border:1px solid var(--copper);
+    border-radius:50%; opacity:0;
+    animation:ripple 3.6s ease-out infinite;
+  }
+  .ripple-ring:nth-child(1){width:160px; height:160px; animation-delay:0s;}
+  .ripple-ring:nth-child(2){width:160px; height:160px; animation-delay:1.2s;}
+  .ripple-ring:nth-child(3){width:160px; height:160px; animation-delay:2.4s;}
+  @keyframes ripple{
+    0%{width:140px; height:140px; opacity:0.7;}
+    100%{width:420px; height:420px; opacity:0;}
+  }
+  .hero-cycle{
+    position:relative; z-index:2;
+    width:320px; height:320px;
+  }
+  .cycle-img{
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    object-fit:contain;
+    opacity:0;
+    transition:opacity 1s ease;
+  }
+  .cycle-img.active{opacity:1;}
+
+  /* ---------- Section headings ---------- */
+  .section{padding:76px 0;}
+  .section-head{max-width:52ch; margin-bottom:44px;}
+  .section-head .eyebrow{margin-bottom:16px;}
+  .section-head h2{font-size:clamp(1.7rem, 3vw, 2.3rem);}
+  .section-head p{color:var(--paper-dim); margin-top:14px; font-size:1.02rem;}
+
+  /* ---------- Intro / About ---------- */
+  .intro{border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .intro .section-head em{color:var(--copper-bright); font-style:normal; font-family:'IBM Plex Mono'; font-size:0.85rem;}
+  .offer-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:40px;
+  }
+  .offer-col{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:30px;
+  }
+  .offer-col-title{
+    display:flex; align-items:center; gap:10px;
+    font-size:1.05rem; margin-bottom:20px;
+  }
+  .offer-icon{color:var(--copper-bright); font-size:0.7rem;}
+  .offer-list{list-style:none;}
+  .offer-list li{
+    padding:12px 0; border-top:1px solid var(--line); font-size:0.92rem; color:var(--paper-dim);
+    line-height:1.55;
+  }
+  .offer-list li:first-child{border-top:none; padding-top:0;}
+  .offer-list li strong{color:var(--paper); font-weight:600;}
+
+  /* ---------- Features grid ---------- */
+  .features{border-top:1px solid var(--line);}
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:24px;
+  }
+  .feature-card{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px; transition:border-color 0.25s;
+  }
+  .feature-card:hover{border-color:var(--copper);}
+  .feature-icon{
+    width:44px; height:44px; border-radius:10px; background:rgba(193,114,63,0.12);
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+    margin-bottom:18px;
+  }
+  .feature-card h3{font-size:1.02rem; margin-bottom:8px;}
+  .feature-card p{color:var(--paper-dim); font-size:0.88rem; line-height:1.55;}
+
+  /* ---------- Products ---------- */
+  .products{border-top:1px solid var(--line);}
+  .product-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:22px;
+  }
+  .product-card{
+    background:var(--ink-2); border:1px solid var(--line);
+    border-radius:var(--radius); padding:26px; display:flex; flex-direction:column;
+    transition:border-color 0.25s, transform 0.25s;
+  }
+  .product-card:hover{border-color:var(--copper); transform:translateY(-4px);}
+  .product-swatch{
+    height:150px; border-radius:10px; margin-bottom:20px;
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .product-swatch svg{width:100%; height:100%;}
+  .product-name{font-size:1.1rem; margin-bottom:4px;}
+  .product-material{font-family:'IBM Plex Mono'; font-size:0.72rem; color:var(--paper-dim); text-transform:uppercase; letter-spacing:0.06em;}
+  .product-desc{color:var(--paper-dim); font-size:0.92rem; margin:14px 0 20px; flex-grow:1;}
+  .product-foot{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:16px; border-top:1px solid var(--line);
+    gap:10px;
+  }
+  .price{font-family:'IBM Plex Mono'; font-size:1.05rem; color:var(--paper);}
+  .order-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    background:var(--copper); border:none; color:#181008;
+    padding:9px 16px; border-radius:999px; font-family:'Inter'; font-size:0.84rem;
+    font-weight:700; cursor:pointer; text-decoration:none; transition:background 0.2s;
+  }
+  .order-btn:hover{background:var(--copper-bright);}
+  .order-btn svg{width:14px; height:14px;}
+
+  /* ---------- Spec comparison table ---------- */
+  .spec-table-wrap{margin-top:64px;}
+  .spec-title{font-size:1.3rem; margin-bottom:22px;}
+  .spec-table{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius);}
+  .spec-table table{width:100%; border-collapse:collapse; min-width:560px;}
+  .spec-table th, .spec-table td{
+    text-align:left; padding:14px 18px; font-size:0.88rem;
+    border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  .spec-table thead th{
+    font-family:'IBM Plex Mono'; font-size:0.72rem; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--copper-bright); background:var(--ink-2);
+  }
+  .spec-table tbody td:first-child{
+    font-family:'IBM Plex Mono'; font-size:0.78rem; color:var(--paper-dim);
+  }
+  .spec-table tbody tr:last-child td{border-bottom:none;}
+
+  /* ---------- Business cards (review/follow/custom) ---------- */
+  .biz-card-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:22px;
+  }
+  .biz-card{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column; transition:border-color 0.25s, transform 0.25s;
+  }
+  .biz-card:hover{border-color:var(--copper); transform:translateY(-4px);}
+  .biz-card img{width:100%; aspect-ratio:1/1; object-fit:contain; display:block; background:#14161c;}
+  .biz-card-info{padding:20px; display:flex; flex-direction:column; flex-grow:1;}
+  .biz-card-info h3{font-size:1.02rem; margin-bottom:6px;}
+  .biz-card-info p{color:var(--paper-dim); font-size:0.86rem; margin-bottom:18px; flex-grow:1;}
+  .biz-card-btn{width:100%; justify-content:center; padding:11px 18px; font-size:0.86rem;}
+
+  /* ---------- Bulk / corporate ---------- */
+  .bulk-section{padding:72px 0; border-top:1px solid var(--line);}
+  .bulk-grid{
+    display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:start;
+  }
+  .bulk-copy{color:var(--paper-dim); font-size:0.95rem; max-width:56ch;}
+
+  /* ---------- Coaching / 1-on-1 ---------- */
+  .coaching{padding:72px 0; border-top:1px solid var(--line); background:var(--ink-2);}
+  .coaching-grid{
+    display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:start;
+  }
+  .coaching-price{
+    display:flex; align-items:baseline; gap:12px; margin-top:28px;
+    padding-top:24px; border-top:1px solid var(--line);
+  }
+  .price-tag{font-family:'Space Grotesk'; font-size:1.6rem; font-weight:700; color:var(--copper-bright);}
+  .price-note{font-size:0.85rem; color:var(--paper-dim);}
+
+  /* ---------- Order popup modal ---------- */
+  .order-modal-overlay{
+    display:none;
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,11,15,0.72); backdrop-filter:blur(4px);
+    align-items:flex-start; justify-content:center;
+    padding:40px 20px;
+    overflow-y:auto;
+  }
+  .order-modal-overlay.open{display:flex;}
+  .order-modal{
+    position:relative;
+    width:100%; max-width:520px;
+    animation:modal-in 0.2s ease;
+  }
+  @keyframes modal-in{
+    from{opacity:0; transform:translateY(12px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .modal-close{
+    position:absolute; top:14px; right:14px; z-index:2;
+    width:34px; height:34px; border-radius:50%;
+    background:var(--ink-3); border:1px solid var(--line-bright); color:var(--paper);
+    font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:border-color 0.2s;
+  }
+  .modal-close:hover{border-color:var(--copper);}
+
+  .order-form{
+    background:var(--ink); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px;
+  }
+  .order-form h3{font-size:1.2rem; margin-bottom:6px;}
+  .order-form > p{color:var(--paper-dim); font-size:0.88rem; margin-bottom:24px;}
+  .form-row{margin-bottom:18px;}
+  .form-row label{
+    display:block; font-family:'IBM Plex Mono'; font-size:0.74rem;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--paper-dim);
+    margin-bottom:8px;
+  }
+  .form-row input[type=text], .form-row input[type=tel], .form-row select, .form-row textarea{
+    width:100%; background:var(--ink-2); border:1px solid var(--line-bright);
+    color:var(--paper); border-radius:8px; padding:12px 14px; font-family:'Inter';
+    font-size:0.94rem;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus{
+    outline:none; border-color:var(--copper);
+  }
+  .form-row textarea{resize:vertical; min-height:70px;}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .radio-group{display:flex; flex-direction:column; gap:10px;}
+  .radio-option{
+    display:flex; align-items:center; gap:10px; padding:11px 14px;
+    border:1px solid var(--line-bright); border-radius:8px; cursor:pointer;
+    font-size:0.9rem; transition:border-color 0.2s;
+  }
+  .radio-option:hover{border-color:var(--copper);}
+  .radio-option input{accent-color:var(--copper);}
+  .submit-btn{
+    width:100%; background:var(--copper); color:#181008; border:none;
+    padding:15px; border-radius:8px; font-family:'Inter'; font-weight:700;
+    font-size:0.98rem; cursor:pointer; margin-top:6px; transition:background 0.2s;
+  }
+  .submit-btn:hover{background:var(--copper-bright);}
+  .submit-btn:disabled{opacity:0.6; cursor:not-allowed;}
+  .form-note{font-size:0.78rem; color:var(--paper-dim); margin-top:14px; text-align:center;}
+  .form-error{
+    font-size:0.84rem; color:#e08a8a; margin-top:14px; text-align:center;
+  }
+  .form-success{
+    text-align:center; padding:30px 10px;
+  }
+  .success-check{
+    width:48px; height:48px; border-radius:50%; background:rgba(63,174,90,0.15);
+    color:var(--whatsapp); font-size:1.4rem; display:flex; align-items:center;
+    justify-content:center; margin:0 auto 18px;
+  }
+  .form-success h4{font-size:1.15rem; margin-bottom:10px;}
+  .form-success p{color:var(--paper-dim); font-size:0.92rem; max-width:38ch; margin:0 auto;}
+
+  /* ---------- How it works (product usage) ---------- */
+  .how{border-top:1px solid var(--line);}
+  .steps{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:36px;
+  }
+  .step{position:relative;}
+  .step-num{
+    font-family:'IBM Plex Mono'; font-size:0.8rem; color:var(--copper-bright);
+    display:block; margin-bottom:14px;
+  }
+  .step h3{font-size:1.15rem; margin-bottom:10px;}
+  .step p{color:var(--paper-dim); font-size:0.94rem;}
+  .step-line{
+    height:1px; background:linear-gradient(90deg, var(--copper), transparent);
+    margin-top:20px;
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-list{border-top:1px solid var(--line); max-width:760px;}
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-q{
+    width:100%; text-align:left; background:none; border:none; color:var(--paper);
+    padding:22px 0; font-family:'Space Grotesk'; font-size:1.02rem; font-weight:500;
+    display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+    gap:20px;
+  }
+  .faq-q .plus{
+    font-family:'IBM Plex Mono'; color:var(--copper-bright); font-size:1.1rem;
+    transition:transform 0.25s; flex-shrink:0;
+  }
+  .faq-item.open .faq-q .plus{transform:rotate(45deg);}
+  .faq-a{
+    max-height:0; overflow:hidden; transition:max-height 0.3s ease;
+    color:var(--paper-dim); font-size:0.94rem;
+  }
+  .faq-a p{padding-bottom:22px; max-width:60ch;}
+  .faq-item.open .faq-a{max-height:220px;}
+
+  /* ---------- Final CTA banner ---------- */
+  .final-cta{
+    padding:90px 0; text-align:center; border-top:1px solid var(--line);
+    background:radial-gradient(ellipse at 50% 0%, rgba(193,114,63,0.1), transparent 60%);
+  }
+  .final-cta-inner{display:flex; flex-direction:column; align-items:center;}
+  .final-cta h2{font-size:clamp(1.8rem, 3.4vw, 2.6rem); max-width:14ch;}
+  .final-cta p{color:var(--paper-dim); margin-top:14px; font-size:1.02rem;}
+  .final-cta-btns{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap; justify-content:center;}
+  .final-cta-stats{
+    display:flex; gap:32px; margin-top:50px; flex-wrap:wrap; justify-content:center;
+    font-size:0.88rem; color:var(--paper-dim);
+  }
+  .final-cta-stats strong{color:var(--copper-bright); font-family:'Space Grotesk';}
+
+  /* ---------- Footer ---------- */
+  footer{padding:56px 0 40px; border-top:1px solid var(--line);}
+  .foot-grid{
+    display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:30px;
+  }
+  .foot-brand .logo{margin-bottom:12px;}
+  .foot-brand p{color:var(--paper-dim); font-size:0.88rem; max-width:32ch;}
+  .foot-cols{display:flex; gap:60px; flex-wrap:wrap;}
+  .foot-col h4{font-size:0.82rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--paper-dim); margin-bottom:14px; font-family:'IBM Plex Mono'; font-weight:500;}
+  .foot-col a{display:block; font-size:0.9rem; margin-bottom:10px; text-decoration:none; opacity:0.85;}
+  .foot-col a:hover{opacity:1; color:var(--copper-bright);}
+  .foot-bottom{
+    margin-top:50px; padding-top:24px; border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono'; font-size:0.76rem; color:var(--paper-dim);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-visual{height:320px; order:-1;}
+    .product-grid{grid-template-columns:repeat(2, 1fr);}
+    .feature-grid{grid-template-columns:repeat(2, 1fr);}
+    .biz-card-grid{grid-template-columns:repeat(2, 1fr);}
+    .steps{grid-template-columns:1fr; gap:28px;}
+    .nav-links{display:none;}
+    .two-col{grid-template-columns:1fr;}
+    .bulk-grid{grid-template-columns:1fr;}
+    .coaching-grid{grid-template-columns:1fr;}
+    .offer-grid{grid-template-columns:1fr; gap:20px;}
+    .feature-grid{grid-template-columns:1fr;}
+    .hero-stats{gap:26px;}
+    .hero-cycle{width:210px; height:268px;}
+    .perfect-for{flex-direction:column; align-items:flex-start; gap:14px;}
+    .final-cta{padding:64px 0;}
+    .final-cta-stats{gap:20px 26px;}
+
+    /* Show sticky order bar, make room for it at the bottom */
+    .mobile-order-bar{display:flex;}
+    body{padding-bottom:76px;}
+    footer{padding-bottom:96px;}
+
+    /* Prevent iOS Safari from zooming in on focused inputs */
+    .form-row input, .form-row select, .form-row textarea{font-size:16px;}
+
+    /* Bigger, easier-to-tap targets on touch screens */
+    .order-btn{min-height:40px; padding:10px 18px;}
+    .add-btn{min-height:40px;}
+    .btn{min-height:48px;}
+    .submit-btn{min-height:52px;}
+    .radio-option{min-height:44px;}
+    .faq-q{min-height:44px;}
+    .wa-nav-btn{min-height:40px;}
+    section.hero{padding:70px 0 60px;}
+    .section{padding:64px 0;}
+  }
+  @media (max-width:520px){
+    .product-grid{grid-template-columns:1fr;}
+    .biz-card-grid{grid-template-columns:1fr;}
+    .wrap{padding:0 20px;}
+    .order-form{padding:22px;}
+    .order-modal-overlay{padding:20px 14px;}
+    .mob-bar-btn{font-size:0.84rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="mobile-order-bar" id="mobileOrderBar">
+  <a class="mob-bar-btn mob-bar-form" href="javascript:void(0)" onclick="openOrderModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z" opacity="0"/><path d="M6 4h9l3 3v13H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>
+    Order form
+  </a>
+  <a class="mob-bar-btn mob-bar-wa" href="https://wa.me/923330354083?text=Hi!%20I%27d%20like%20to%20order%20a%20Coil%20NFC%20card." target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.2.2-.3.2-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+    WhatsApp order
+  </a>
+</div>
+
+<!-- Order popup: opens when "Order" is clicked on any product, or from the nav/sticky bar -->
+<div class="order-modal-overlay" id="orderModalOverlay" onclick="if(event.target===this) closeOrderModal()">
+  <div class="order-modal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+    <button type="button" class="modal-close" onclick="closeOrderModal()" aria-label="Close">✕</button>
+
+    <form class="order-form" id="orderForm">
+      <h3 id="orderModalTitle">Order form</h3>
+      <p>Fill this in — you'll get an email confirming your order, and we'll follow up on WhatsApp or a call.</p>
+
+      <div id="formSuccess" class="form-success" hidden>
+        <div class="success-check">✓</div>
+        <h4>Your order has been placed!</h4>
+        <p>We've emailed you a confirmation. We'll reach out on WhatsApp or by phone shortly to finalize delivery and payment.</p>
+        <button type="button" class="btn btn-primary" onclick="closeOrderModal()" style="margin-top:20px;">Done</button>
+      </div>
+
+      <div id="formFields">
+
+      <div class="form-row">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div class="two-col">
+        <div class="form-row">
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" name="phone" required placeholder="03xx-xxxxxxx">
+        </div>
+        <div class="form-row">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="product">Card</label>
+        <select id="product" name="product" required>
+          <option value="">Choose one</option>
+          <option value="Google Review Plate — Rs. 2,500">Google Review Plate — Rs. 2,500</option>
+          <option value="Instagram Follow Plate — Rs. 2,500">Instagram Follow Plate — Rs. 2,500</option>
+          <option value="Facebook Follow Plate — Rs. 2,500">Facebook Follow Plate — Rs. 2,500</option>
+          <option value="Custom Plate — Rs. 2,500">Custom Plate — Rs. 2,500</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="address">Delivery address</label>
+        <textarea id="address" name="address" required placeholder="House/street, area, city"></textarea>
+      </div>
+
+      <div class="form-row">
+        <label>Payment method</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="payment" value="Bank Transfer" checked> Bank Transfer</label>
+          <label class="radio-option"><input type="radio" name="payment" value="JazzCash"> JazzCash</label>
+          <label class="radio-option"><input type="radio" name="payment" value="Easypaisa"> Easypaisa</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" name="notes" placeholder="Name/text to put on the card, logo requests, delivery timing, anything else"></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Send order</button>
+      <p class="form-note">We'll contact you on WhatsApp or call within a few hours to confirm.</p>
+      <p id="formError" class="form-error" hidden>Something went wrong sending your order — please try WhatsApp instead, or try again in a moment.</p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<header id="top">
+  <nav class="wrap">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.2" fill="#e0925c"/><circle cx="12" cy="12" r="6" stroke="#e0925c" stroke-width="1.2" opacity="0.6"/><circle cx="12" cy="12" r="10" stroke="#e0925c" stroke-width="1.2" opacity="0.3"/></svg>
+      Coil
+    </div>
+    <div class="nav-links">
+      <a href="#top">Home</a>
+      <a href="#features">Features</a>
+      <a href="#products">Cards</a>
+      <a href="#coaching">Learn</a>
+      <a href="javascript:void(0)" onclick="openOrderModal()">Order now</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-right">
+      <div class="social-icons">
+        <a href="https://www.instagram.com/coiltap.pk" target="_blank" rel="noopener" aria-label="Follow on Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+        </a>
+        <a href="https://www.facebook.com/share/1C7MTcMUgx/" target="_blank" rel="noopener" aria-label="Follow on Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V11H8v3h2.5v6h3v-6H16l.5-3h-3V9.7c0-.4.3-.7.5-.7Z"/></svg>
+        </a>
+      </div>
+      <a class="wa-nav-btn" href="https://wa.me/923330354083?text=Hi!%20I%27d%20like%20to%20ask%20about%20Coil%20NFC%20cards." target="_blank" rel="noopener">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.2.2-.3.2-.5.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+        WhatsApp
+      </a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Ready-made · ships in 3 days</div>
+      <h1 class="hero-title">Turn every tap into a <span class="accent">connection.</span></h1>
+      <p class="hero-sub">Smart NFC cards that instantly share your profile with a single tap — no app required. Pick a card, customize it, and start connecting today.</p>
+      <div class="hero-ctas">
+        <a href="#products" class="btn btn-primary">Browse cards</a>
+        <a href="javascript:void(0)" onclick="openOrderModal()" class="btn btn-ghost">Order now</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-num">4</span><span class="stat-label">Plate types</span></div>
+        <div class="hero-stat"><span class="stat-num">3-day</span><span class="stat-label">Shipping</span></div>
+        <div class="hero-stat"><span class="stat-num">NTAG213</span><span class="stat-label">Chip inside</span></div>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="ripple-ring"></div>
+      <div class="ripple-ring"></div>
+      <div class="ripple-ring"></div>
+      <div class="hero-cycle">
+        <img src="google-review-hero.png" class="cycle-img active" alt="">
+        <img src="instagram-follow-hero.png" class="cycle-img" alt="">
+        <img src="facebook-follow-hero.png" class="cycle-img" alt="">
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="perfect-for">
+      <span class="perfect-for-label mono">Perfect for</span>
+      <div class="perfect-chips">
+        <span class="chip">Freelancers</span>
+        <span class="chip">Small businesses</span>
+        <span class="chip">Event networking</span>
+        <span class="chip">Sales teams</span>
+        <span class="chip">Real estate agents</span>
+        <span class="chip">Students</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section features" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow mono">Why Coil</div>
+      <h2>Everything you need. Nothing you don't.</h2>
+      <p>No app to build, no subscription, no learning curve for the person you hand it to.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant tap-to-share</h3>
+        <p>One tap opens your profile in their browser — under two seconds, no app needed on their end.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Nothing for them to install</h3>
+        <p>Your customer's phone already does this. They don't download anything or make an account.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Four plates to choose from</h3>
+        <p>Google Reviews, Instagram, Facebook, or a fully custom link — same plate, different purpose.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✍️</div>
+        <h3>Set to any link</h3>
+        <p>Google reviews, Instagram, Facebook, or a page of your choice — we program the link before it ships.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🚚</div>
+        <h3>Nationwide delivery</h3>
+        <p>Shipped across Pakistan in about 3 days — pay by Bank Transfer, JazzCash, or Easypaisa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section products" id="products">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow mono">The lineup</div>
+      <h2>Four plates, one chip inside.</h2>
+      <p>Every plate runs the same NTAG213 chip and acrylic body — pick the one that matches what you want it to do.</p>
+    </div>
+    <div class="product-grid">
+
+      <div class="biz-card">
+        <img src="google-review-card.jpg" alt="Google Review Plate — NFC plate that collects Google reviews with a tap or QR scan" loading="lazy">
+        <div class="biz-card-info">
+          <h3>Google Review Plate</h3>
+          <p>One tap sends customers straight to your review page.</p>
+          <div class="product-foot">
+            <span class="price">Rs. 2,500</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Google Review Plate — Rs. 2,500')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
+              Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="biz-card">
+        <img src="instagram-follow-card.jpg" alt="Instagram Follow Plate — NFC plate that grows your Instagram following with a tap or QR scan" loading="lazy">
+        <div class="biz-card-info">
+          <h3>Instagram Follow Plate</h3>
+          <p>Turn foot traffic or table visits into followers, instantly.</p>
+          <div class="product-foot">
+            <span class="price">Rs. 2,500</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Instagram Follow Plate — Rs. 2,500')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
+              Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="biz-card">
+        <img src="facebook-follow-card.jpg" alt="Facebook Follow Plate — NFC plate that grows your Facebook page with a tap or QR scan" loading="lazy">
+        <div class="biz-card-info">
+          <h3>Facebook Follow Plate</h3>
+          <p>Same idea, pointed at your Facebook page instead.</p>
+          <div class="product-foot">
+            <span class="price">Rs. 2,500</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Facebook Follow Plate — Rs. 2,500')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
+              Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="biz-card">
+        <img src="custom-card.jpg" alt="Custom Plate — NFC plate template that can link anywhere you choose" loading="lazy">
+        <div class="biz-card-info">
+          <h3>Custom Plate</h3>
+          <p>Menu, contact form, a landing page — tell us the goal, we set the link.</p>
+          <div class="product-foot">
+            <span class="price">Rs. 2,500</span>
+            <button type="button" class="order-btn" onclick="openOrderModal('Custom Plate — Rs. 2,500')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6 4 3H2"/></svg>
+              Order
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="section bulk-section" id="bulk">
+  <div class="wrap bulk-grid">
+    <div class="bulk-intro">
+      <div class="eyebrow mono">For teams</div>
+      <h2 style="font-size:clamp(1.5rem,2.6vw,2rem); margin-bottom:10px;">Ordering 10 or more?</h2>
+      <p class="bulk-copy">Corporate gifting, event badges, or onboarding kits for a whole team — we do bulk pricing and can put your company logo on the card instead of an individual name. Send us the details and we'll get back to you with a quote.</p>
+      <a class="btn btn-primary" target="_blank" rel="noopener" style="margin-top:24px;"
+         href="https://wa.me/923330354083?text=Hi!%20I%27d%20like%20a%20bulk%2Fcorporate%20quote%20for%20Coil%20NFC%20cards.%20Quantity%3A%20">
+        Or message us on WhatsApp
+      </a>
+    </div>
+
+    <form class="order-form" id="bulkForm">
+      <h3>Bulk order inquiry</h3>
+      <p>We'll look this over and contact you directly — no auto-confirmation, just a real reply.</p>
+
+      <div id="bulkSuccess" class="form-success" hidden>
+        <div class="success-check">✓</div>
+        <h4>Got it — thanks!</h4>
+        <p>We've received your details and will reach out shortly to discuss pricing and next steps.</p>
+      </div>
+
+      <div id="bulkFields">
+        <div class="two-col">
+          <div class="form-row">
+            <label for="bulkName">Full name</label>
+            <input type="text" id="bulkName" name="bulkName" required>
+          </div>
+          <div class="form-row">
+            <label for="bulkOrg">Company / organization (optional)</label>
+            <input type="text" id="bulkOrg" name="bulkOrg">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="bulkPhone">Phone number</label>
+            <input type="tel" id="bulkPhone" name="bulkPhone" required placeholder="03xx-xxxxxxx">
+          </div>
+          <div class="form-row">
+            <label for="bulkEmail">Email address</label>
+            <input type="email" id="bulkEmail" name="bulkEmail" required placeholder="you@example.com">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="bulkQty">Quantity needed</label>
+            <input type="text" id="bulkQty" name="bulkQty" required placeholder="e.g. 25">
+          </div>
+          <div class="form-row">
+            <label for="bulkFinish">Which plate(s)?</label>
+            <select id="bulkFinish" name="bulkFinish">
+              <option value="Not sure yet">Not sure yet</option>
+              <option value="Google Review Plate">Google Review Plate</option>
+              <option value="Instagram Follow Plate">Instagram Follow Plate</option>
+              <option value="Facebook Follow Plate">Facebook Follow Plate</option>
+              <option value="Custom Plate">Custom Plate</option>
+              <option value="Mix of plates">Mix of plates</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="bulkNotes">Tell us about your order</label>
+          <textarea id="bulkNotes" name="bulkNotes" placeholder="Logo on cards? Event date? Anything else we should know."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="bulkSubmitBtn">Send inquiry</button>
+        <p class="form-note">We'll contact you directly to discuss pricing and details.</p>
+        <p id="bulkError" class="form-error" hidden>Something went wrong sending this — please try WhatsApp instead, or try again in a moment.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section coaching" id="coaching">
+  <div class="wrap coaching-grid">
+    <div class="coaching-intro">
+      <div class="eyebrow mono">Learn with us</div>
+      <h2 style="font-size:clamp(1.5rem,2.6vw,2rem); margin-bottom:16px;">Get more from your card — one-on-one.</h2>
+      <p class="bulk-copy">A private session on actually using an NFC card to network and sell — not just owning one. We'll tailor it to your industry and how you meet people.</p>
+      <ul class="offer-list" style="margin-top:24px;">
+        <li><strong>How to bring it up</strong> — working it into a conversation without it feeling like a pitch.</li>
+        <li><strong>The follow-up</strong> — what to do in the hours after someone taps your card, before they forget you.</li>
+        <li><strong>Your profile page</strong> — what to put on it so a tap turns into a reply, not just a saved contact.</li>
+        <li><strong>Q&amp;A for your field</strong> — sales, real estate, freelancing, events — whatever you actually do.</li>
+      </ul>
+      <div class="coaching-price">
+        <span class="price-tag">Rs. 3,000</span>
+        <span class="price-note">per 1-on-1 session · ~45 minutes</span>
+      </div>
+    </div>
+
+    <form class="order-form" id="coachingForm">
+      <h3>Book a session</h3>
+      <p>Tell us a bit about you — we'll follow up to confirm a time and payment.</p>
+
+      <div id="coachingSuccess" class="form-success" hidden>
+        <div class="success-check">✓</div>
+        <h4>Request received!</h4>
+        <p>We'll reach out shortly to lock in a time and sort out payment.</p>
+      </div>
+
+      <div id="coachingFields">
+        <div class="two-col">
+          <div class="form-row">
+            <label for="coachName">Full name</label>
+            <input type="text" id="coachName" name="coachName" required>
+          </div>
+          <div class="form-row">
+            <label for="coachPhone">Phone number</label>
+            <input type="tel" id="coachPhone" name="coachPhone" required placeholder="03xx-xxxxxxx">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="coachEmail">Email address</label>
+          <input type="email" id="coachEmail" name="coachEmail" required placeholder="you@example.com">
+        </div>
+
+        <div class="form-row">
+          <label for="coachWork">What do you do?</label>
+          <input type="text" id="coachWork" name="coachWork" required placeholder="e.g. real estate agent, freelance designer, sales rep">
+        </div>
+
+        <div class="form-row">
+          <label for="coachTime">Preferred day/time</label>
+          <input type="text" id="coachTime" name="coachTime" required placeholder="e.g. Weekday evenings, or a specific date">
+        </div>
+
+        <div class="form-row">
+          <label for="coachNotes">Anything specific you want covered? (optional)</label>
+          <textarea id="coachNotes" name="coachNotes" placeholder="What's prompting this — an event coming up, trouble getting replies, etc."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="coachSubmitBtn">Request a session</button>
+        <p class="form-note">We'll contact you to confirm timing and payment (Bank Transfer / JazzCash / Easypaisa).</p>
+        <p id="coachError" class="form-error" hidden>Something went wrong sending this — please try WhatsApp instead, or try again in a moment.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section how" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow mono">The exchange</div>
+      <h2>Once it arrives: three steps, under two seconds.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num mono">01 — Tap</span>
+        <h3>Hold the card to their phone</h3>
+        <p>No case is too thick, no angle too odd — NFC reads through most phone cases from about a centimeter away.</p>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <span class="step-num mono">02 — Open</span>
+        <h3>Their browser opens your profile</h3>
+        <p>No app to install. iPhone (XS or later) and most Android phones from the last six years read it natively.</p>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <span class="step-num mono">03 — Save</span>
+        <h3>They save your contact</h3>
+        <p>One button on the page drops your number, email, and links straight into their contacts.</p>
+        <div class="step-line"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow mono">Before you order</div>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">Will it work with my phone?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Yes, if it's an iPhone XS/2018 or newer, or an Android phone from the last six years or so — nearly all of them ship with NFC turned on by default.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do I need to program it myself?<span class="plus">+</span></button>
+        <div class="faq-a"><p>No — every card ships pre-loaded with a link to a profile page. You can still rewrite the chip later with any free NFC-writing app if your details change.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Do you deliver across Pakistan?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Yes, we ship nationwide via courier. Payment is by Bank Transfer, JazzCash, or Easypaisa — we'll confirm the details with you over WhatsApp before shipping.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">What's your return policy?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Unopened cards can be returned within 7 days of delivery. Opened ones are covered only if the chip doesn't read — message us and we'll replace it.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.2" fill="#e0925c"/><circle cx="12" cy="12" r="6" stroke="#e0925c" stroke-width="1.2" opacity="0.6"/><circle cx="12" cy="12" r="10" stroke="#e0925c" stroke-width="1.2" opacity="0.3"/></svg>
+          Coil
+        </div>
+        <p>Ready-made NFC cards, hand-assembled and pre-loaded, shipped nationwide in three days. Made in Pakistan.</p>
+        <div class="foot-social">
+          <a href="https://www.instagram.com/coiltap.pk" target="_blank" rel="noopener" aria-label="Follow on Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+          </a>
+          <a href="https://www.facebook.com/share/1C7MTcMUgx/" target="_blank" rel="noopener" aria-label="Follow on Facebook">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V11H8v3h2.5v6h3v-6H16l.5-3h-3V9.7c0-.4.3-.7.5-.7Z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a href="#products">All cards</a>
+          <a href="javascript:void(0)" onclick="openOrderModal()">Order now</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <a href="https://wa.me/923330354083" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="mailto:hello@coilcards.example">Email</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Coil Cards</span>
+      <span>Made with copper &amp; polycarbonate</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Order popup: opens pre-filled to a specific product when triggered from a product card,
+  // or blank (with the "Choose one" dropdown) when triggered from nav/sticky bar/hero.
+  const orderModalOverlay = document.getElementById('orderModalOverlay');
+
+  function openOrderModal(productValue){
+    const productSelect = document.getElementById('product');
+    if (productValue){
+      productSelect.value = productValue;
+    }
+    orderModalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeOrderModal(){
+    orderModalOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    // Reset back to the form view for next time, after the close animation
+    setTimeout(function(){
+      const formFieldsEl = document.getElementById('formFields');
+      const formSuccessEl = document.getElementById('formSuccess');
+      const formErrorEl = document.getElementById('formError');
+      const submitBtnEl = document.getElementById('submitBtn');
+      if (formFieldsEl.hidden){
+        document.getElementById('orderForm').reset();
+        formFieldsEl.hidden = false;
+        formSuccessEl.hidden = true;
+      }
+      formErrorEl.hidden = true;
+      submitBtnEl.disabled = false;
+      submitBtnEl.textContent = 'Send order';
+    }, 200);
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && orderModalOverlay.classList.contains('open')) closeOrderModal();
+  });
+</script>
+
+<!-- EmailJS: sends the order form via JavaScript, no backend needed -->
+<!-- 1) Free account at emailjs.com  2) Connect an email service (Gmail etc.)
+     3) Create exactly 2 templates: "Customer Confirmation" and a shared
+        "Owner Notification" template (used by orders, bulk inquiries, and
+        coaching requests together — this keeps you within the free plan's
+        2-template limit). 4) Replace 129cPTLTDNJ8Whsm_,
+        service_y4dwxx3, template_css2mnn, and
+        template_vgyzdsb below with your real values. -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  (function(){
+    emailjs.init({ publicKey: "129cPTLTDNJ8Whsm_" });
+  })();
+
+  const orderForm = document.getElementById('orderForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formFields = document.getElementById('formFields');
+  const formSuccess = document.getElementById('formSuccess');
+  const formError = document.getElementById('formError');
+
+  orderForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    formError.hidden = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    const customerParams = {
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      product: document.getElementById('product').value,
+      address: document.getElementById('address').value,
+      payment: orderForm.querySelector('input[name="payment"]:checked').value,
+      notes: document.getElementById('notes').value
+    };
+
+    // Shared "owner notification" template — used by orders, bulk inquiries, AND
+    // coaching requests (see the generic label1/value1 etc. slots below), since the
+    // free EmailJS plan only allows 2 templates total.
+    const ownerParams = {
+      requestType: '🔔 New Order',
+      name: customerParams.name,
+      phone: customerParams.phone,
+      email: customerParams.email,
+      label1: 'Card', value1: customerParams.product,
+      label2: 'Address', value2: customerParams.address,
+      label3: 'Payment', value3: customerParams.payment,
+      notes: customerParams.notes
+    };
+
+    // Email #1: notification to the shop owner, with all order details
+    const notifyOwner = emailjs.send("service_y4dwxx3", "template_css2mnn", ownerParams);
+
+    // Email #2: confirmation to the customer ("Your order has been placed")
+    const confirmCustomer = emailjs.send("service_y4dwxx3", "template_vgyzdsb", customerParams);
+
+    Promise.all([notifyOwner, confirmCustomer])
+      .then(function(){
+        formFields.hidden = true;
+        formSuccess.hidden = false;
+      })
+      .catch(function(err){
+        console.error('EmailJS error:', err);
+        formError.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send order';
+      });
+  });
+</script>
+
+<script>
+  const bulkForm = document.getElementById('bulkForm');
+  const bulkSubmitBtn = document.getElementById('bulkSubmitBtn');
+  const bulkFields = document.getElementById('bulkFields');
+  const bulkSuccess = document.getElementById('bulkSuccess');
+  const bulkError = document.getElementById('bulkError');
+
+  bulkForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    bulkError.hidden = true;
+    bulkSubmitBtn.disabled = true;
+    bulkSubmitBtn.textContent = 'Sending...';
+
+    const params = {
+      requestType: '📦 Bulk Inquiry',
+      name: document.getElementById('bulkName').value,
+      phone: document.getElementById('bulkPhone').value,
+      email: document.getElementById('bulkEmail').value,
+      label1: 'Company', value1: document.getElementById('bulkOrg').value,
+      label2: 'Quantity', value2: document.getElementById('bulkQty').value,
+      label3: 'Plate(s)', value3: document.getElementById('bulkFinish').value,
+      notes: document.getElementById('bulkNotes').value
+    };
+
+    // Single email to the shop owner only — no auto-confirmation to the customer,
+    // since bulk inquiries get a personal follow-up instead. Uses the same shared
+    // template as orders and coaching requests (see requestType above).
+    emailjs.send("service_y4dwxx3", "template_css2mnn", params)
+      .then(function(){
+        bulkFields.hidden = true;
+        bulkSuccess.hidden = false;
+      })
+      .catch(function(err){
+        console.error('EmailJS error:', err);
+        bulkError.hidden = false;
+        bulkSubmitBtn.disabled = false;
+        bulkSubmitBtn.textContent = 'Send inquiry';
+      });
+  });
+</script>
+
+<script>
+  const coachingForm = document.getElementById('coachingForm');
+  const coachSubmitBtn = document.getElementById('coachSubmitBtn');
+  const coachingFields = document.getElementById('coachingFields');
+  const coachingSuccess = document.getElementById('coachingSuccess');
+  const coachError = document.getElementById('coachError');
+
+  coachingForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    coachError.hidden = true;
+    coachSubmitBtn.disabled = true;
+    coachSubmitBtn.textContent = 'Sending...';
+
+    const params = {
+      requestType: '🎓 Coaching Request',
+      name: document.getElementById('coachName').value,
+      phone: document.getElementById('coachPhone').value,
+      email: document.getElementById('coachEmail').value,
+      label1: 'Occupation', value1: document.getElementById('coachWork').value,
+      label2: 'Preferred time', value2: document.getElementById('coachTime').value,
+      label3: '', value3: '',
+      notes: document.getElementById('coachNotes').value
+    };
+
+    // Single email to the shop owner only — you'll follow up directly to confirm
+    // a time and take payment for the session. Uses the same shared template as
+    // orders and bulk inquiries (see requestType above).
+    emailjs.send("service_y4dwxx3", "template_css2mnn", params)
+      .then(function(){
+        coachingFields.hidden = true;
+        coachingSuccess.hidden = false;
+      })
+      .catch(function(err){
+        console.error('EmailJS error:', err);
+        coachError.hidden = false;
+        coachSubmitBtn.disabled = false;
+        coachSubmitBtn.textContent = 'Request a session';
+      });
+  });
+</script>
+
+<script>
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if(!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+
+<script>
+  // Hero visual: cycle through the 4 real product photos
+  (function(){
+    const cycleImgs = document.querySelectorAll('.cycle-img');
+    if (cycleImgs.length < 2) return;
+    let idx = 0;
+    setInterval(function(){
+      cycleImgs[idx].classList.remove('active');
+      idx = (idx + 1) % cycleImgs.length;
+      cycleImgs[idx].classList.add('active');
+    }, 3200);
+  })();
+</script>
+
+</body>
+</html>
